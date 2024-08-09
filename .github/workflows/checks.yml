@@ -8,6 +8,9 @@ jobs:
     name: Test and Lint
     runs-on: ubuntu-20.04
     steps:
+      - name: Create Symlink for Docker Compose
+        run: |
+          sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
