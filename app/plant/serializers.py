@@ -67,10 +67,13 @@ class PlantSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Update plant."""
         tags = validated_data.pop('tags', None)
+        care_tips = validated_data.pop('care_tips', None)
         if tags is not None:
             instance.tags.clear()
             self._get_or_create_tags(tags, instance)
-
+        if care_tips is not None:
+            instance.care_tips.clear()
+            self._get_or_create_care_tips(care_tips, instance)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 

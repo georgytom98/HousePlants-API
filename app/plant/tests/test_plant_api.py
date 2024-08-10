@@ -321,3 +321,43 @@ class PrivatePlantApiTests(TestCase):
                 user=self.user,
             ).exists()
             self.assertTrue(exists)
+
+    def test_create_care_tip_on_update(self):
+        """Test creating an care tip when updating a plant."""
+        plant = create_plant(user=self.user)
+
+        payload = {'care_tips': [{'name': 'Add water'}]}
+        url = detail_url(plant.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_care_tip = CareTip.objects.get(user=self.user, name='Add water')
+        self.assertIn(new_care_tip, plant.care_tips.all())
+
+    def test_update_plant_assign_care_tip(self):
+        """Test assigning an existing care tip when updating a plant."""
+        care_tip1 = CareTip.objects.create(user=self.user, name='Pepper')
+        plant = create_plant(user=self.user)
+        plant.care_tips.add(care_tip1)
+
+        care_tip2 = CareTip.objects.create(user=self.user, name='Trim')
+        payload = {'care_tips': [{'name': 'Trim'}]}
+        url = detail_url(plant.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(care_tip2, plant.care_tips.all())
+        self.assertNotIn(care_tip1, plant.care_tips.all())
+
+    def test_clear_plant_care_tips(self):
+        """Test clearing a plants care tips."""
+        care_tip = CareTip.objects.create(user=self.user, name='Garlic')
+        plant = create_plant(user=self.user)
+        plant.care_tips.add(care_tip)
+
+        payload = {'care_tips': []}
+        url = detail_url(plant.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(plant.care_tips.count(), 0)
