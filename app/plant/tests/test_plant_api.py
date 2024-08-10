@@ -371,6 +371,46 @@ class PrivatePlantApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(plant.care_tips.count(), 0)
 
+    def test_filter_by_tags(self):
+        """Test filtering plants by tags."""
+        r1 = create_plant(user=self.user, title='ZZ Plant')
+        r2 = create_plant(user=self.user, title='Cactus')
+        tag1 = Tag.objects.create(user=self.user, name='Low Cost')
+        tag2 = Tag.objects.create(user=self.user, name='popular')
+        r1.tags.add(tag1)
+        r2.tags.add(tag2)
+        r3 = create_plant(user=self.user, title='String of Pearls')
+
+        params = {'tags': f'{tag1.id},{tag2.id}'}
+        res = self.client.get(PLANT_URL, params)
+
+        s1 = PlantSerializer(r1)
+        s2 = PlantSerializer(r2)
+        s3 = PlantSerializer(r3)
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        self.assertNotIn(s3.data, res.data)
+
+    def test_filter_by_care_tips(self):
+        """Test filtering plants by care tips."""
+        r1 = create_plant(user=self.user, title='Posh Beans on Toast')
+        r2 = create_plant(user=self.user, title='Chicken Cacciatore')
+        in1 = CareTip.objects.create(user=self.user, name='Feta Cheese')
+        in2 = CareTip.objects.create(user=self.user, name='Chicken')
+        r1.care_tips.add(in1)
+        r2.care_tips.add(in2)
+        r3 = create_plant(user=self.user, title='Red Lentil Daal')
+
+        params = {'care_tips': f'{in1.id},{in2.id}'}
+        res = self.client.get(PLANT_URL, params)
+
+        s1 = PlantSerializer(r1)
+        s2 = PlantSerializer(r2)
+        s3 = PlantSerializer(r3)
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        self.assertNotIn(s3.data, res.data)
+
 
 class ImageUploadTests(TestCase):
     """Tests for the image upload API."""

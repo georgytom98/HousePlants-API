@@ -1,6 +1,8 @@
 """
 Tests for the tags API.
 """
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.test import TestCase
@@ -8,7 +10,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Tag
+from core.models import Tag, Plant
 
 from plant.serializers import TagSerializer
 
@@ -94,3 +96,42 @@ class PrivateTagsApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
         tags = Tag.objects.filter(user=self.user)
         self.assertFalse(tags.exists())
+
+    def test_filter_tags_assigned_to_plants(self):
+        """Test listing tags to those assigned to plants."""
+        tag1 = Tag.objects.create(user=self.user, name='Popular')
+        tag2 = Tag.objects.create(user=self.user, name='Easy Care')
+        plant = Plant.objects.create(
+            title='Cactus',
+            price=Decimal('3.50'),
+            user=self.user,
+        )
+        plant.tags.add(tag1)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        s1 = TagSerializer(tag1)
+        s2 = TagSerializer(tag2)
+        self.assertIn(s1.data, res.data)
+        self.assertNotIn(s2.data, res.data)
+
+    def test_filtered_tags_unique(self):
+        """Test filtered tags returns a unique list."""
+        tag = Tag.objects.create(user=self.user, name='Easy Care')
+        Tag.objects.create(user=self.user, name='Trending')
+        plant1 = Plant.objects.create(
+            title='ZZ Plant',
+            price=Decimal('12.00'),
+            user=self.user,
+        )
+        plant2 = Plant.objects.create(
+            title='Calathia',
+            price=Decimal('13.00'),
+            user=self.user,
+        )
+        plant1.tags.add(tag)
+        plant2.tags.add(tag)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        self.assertEqual(len(res.data), 1)
