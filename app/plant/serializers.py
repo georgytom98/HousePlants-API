@@ -86,3 +86,13 @@ class PlantDetailSerializer(PlantSerializer):
 
     class Meta(PlantSerializer.Meta):
         fields = PlantSerializer.Meta.fields + ['description']
+
+
+class PlantImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to plants."""
+
+    class Meta:
+        model = Plant
+        fields = ['id', 'image']
+        read_only_fields = ['id']
+        extra_kwargs = {'image': {'required': 'True'}}
