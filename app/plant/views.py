@@ -24,12 +24,12 @@ from plant import serializers
             OpenApiParameter(
                 'tags',
                 OpenApiTypes.STR,
-                description='Comma separated list of tag IDs to filter',
+                description='Enter comma separated list(s) of tag IDs to filter',
             ),
             OpenApiParameter(
                 'care_tips',
                 OpenApiTypes.STR,
-                description='Comma separated list of care tip IDs to filter',
+                description='Enter comma separated list(s) of care tip IDs to filter',
             ),
         ]
     )
