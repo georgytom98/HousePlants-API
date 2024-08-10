@@ -31,7 +31,8 @@ class PlantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Plant
-        fields = ['id', 'title', 'price', 'link', 'tags', 'care_tips']
+        fields = ['id', 'title', 'price', 'link',
+                  'tags', 'care_tips']
         read_only_fields = ['id']
 
     def _get_or_create_tags(self, tags, plant):
