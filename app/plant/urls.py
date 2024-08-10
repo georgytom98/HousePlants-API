@@ -14,6 +14,7 @@ from plant import views
 router = DefaultRouter()
 router.register('plants', views.PlantViewSet)
 router.register('tags', views.TagViewSet)
+router.register('caretips', views.CareTipViewSet)
 
 app_name = 'plant'
 

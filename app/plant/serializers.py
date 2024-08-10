@@ -3,7 +3,16 @@ Serializers for plant APIs
 """
 from rest_framework import serializers
 
-from core.models import Plant, Tag
+from core.models import Plant, Tag, CareTip
+
+
+class CareTipSerializer(serializers.ModelSerializer):
+    """Serializer for care tips."""
+
+    class Meta:
+        model = CareTip
+        fields = ['id', 'name']
+        read_only_fields = ['id']
 
 
 class TagSerializer(serializers.ModelSerializer):
