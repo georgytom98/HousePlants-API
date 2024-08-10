@@ -217,11 +217,11 @@ class PrivatePlantApiTests(TestCase):
 
     def test_create_plant_with_existing_tags(self):
         """Test creating a plant with existing tag."""
-        tag_indian = Tag.objects.create(user=self.user, name='Indian')
+        tag_popular = Tag.objects.create(user=self.user, name='popular')
         payload = {
             'title': 'String of Pearls',
             'price': Decimal('9.50'),
-            'tags': [{'name': 'succulant'}, {'name': 'indoor'}],
+            'tags': [{'name': 'succulant'}, {'name': 'popular'}],
         }
         res = self.client.post(PLANT_URL, payload, format='json')
 
@@ -230,7 +230,7 @@ class PrivatePlantApiTests(TestCase):
         self.assertEqual(plants.count(), 1)
         plant = plants[0]
         self.assertEqual(plant.tags.count(), 2)
-        self.assertIn(tag_indian, plant.tags.all())
+        self.assertIn(tag_popular, plant.tags.all())
         for tag in payload['tags']:
             exists = plant.tags.filter(
                 name=tag['name'],
@@ -247,7 +247,7 @@ class PrivatePlantApiTests(TestCase):
         res = self.client.patch(url, payload, format='json')
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        new_tag = Tag.objects.get(user=self.user, name='Lunch')
+        new_tag = Tag.objects.get(user=self.user, name='popular')
         self.assertIn(new_tag, plant.tags.all())
 
     def test_update_plant_assign_tag(self):
