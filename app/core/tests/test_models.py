@@ -75,3 +75,13 @@ class ModelTests(TestCase):
         tag = models.Tag.objects.create(user=user, name='Tag1')
 
         self.assertEqual(str(tag), tag.name)
+
+    def test_create_care_tip(self):
+        """Test creating a care tip is successful."""
+        user = create_user()
+        care_tip = models.CareTip.objects.create(
+            user=user,
+            name='Care Tip 1'
+        )
+
+        self.assertEqual(str(care_tip), care_tip.name)
