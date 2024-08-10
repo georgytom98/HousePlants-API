@@ -11,7 +11,7 @@ from plant import serializers
 
 class PlantViewSet(viewsets.ModelViewSet):
     """View for manage plant APIs."""
-    serializer_class = serializers.PlantSerializer
+    serializer_class = serializers.PlantDetailSerializer
     queryset = Plant.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -19,3 +19,14 @@ class PlantViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve plants for authenticated user."""
         return self.queryset.filter(user=self.request.user).order_by('-id')
+
+    def get_serializer_class(self):
+        """Return the serializer class for request."""
+        if self.action == 'list':
+            return serializers.PlantSerializer
+
+        return self.serializer_class
+
+    def perform_create(self, serializer):
+        """Create a new plant."""
+        serializer.save(user=self.request.user)
