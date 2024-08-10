@@ -10,7 +10,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Plant, Tag
+from core.models import Plant, Tag, CareTip
 
 from plant.serializers import PlantSerializer, PlantDetailSerializer
 
@@ -277,3 +277,47 @@ class PrivatePlantApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(plant.tags.count(), 0)
+
+    def test_create_plant_with_new_care_tips(self):
+        """Test creating a plant with new care tips."""
+        payload = {
+            'title': 'ZZ Plant',
+            'price': Decimal('4.30'),
+            'care_tips': [{'name': 'Add water'}, {'name': 'Trim'}],
+        }
+        res = self.client.post(PLANT_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        plants = Plant.objects.filter(user=self.user)
+        self.assertEqual(plants.count(), 1)
+        plant = plants[0]
+        self.assertEqual(plant.care_tips.count(), 2)
+        for care_tip in payload['care_tips']:
+            exists = plant.care_tips.filter(
+                name=care_tip['name'],
+                user=self.user,
+            ).exists()
+            self.assertTrue(exists)
+
+    def test_create_plant_with_existing_care_tip(self):
+        """Test creating a new plant with existing care tip."""
+        care_tip = CareTip.objects.create(user=self.user, name='Trim')
+        payload = {
+            'title': 'ZZ Plant',
+            'price': '3.55',
+            'care_tips': [{'name': 'Add Water'}, {'name': 'Trim'}],
+        }
+        res = self.client.post(PLANT_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        plants = Plant.objects.filter(user=self.user)
+        self.assertEqual(plants.count(), 1)
+        plant = plants[0]
+        self.assertEqual(plant.care_tips.count(), 2)
+        self.assertIn(care_tip, plant.care_tips.all())
+        for caretip in payload['care_tips']:
+            exists = plant.care_tips.filter(
+                name=caretip['name'],
+                user=self.user,
+            ).exists()
+            self.assertTrue(exists)

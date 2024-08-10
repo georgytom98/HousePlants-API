@@ -27,10 +27,11 @@ class TagSerializer(serializers.ModelSerializer):
 class PlantSerializer(serializers.ModelSerializer):
     """Serializer for plants."""
     tags = TagSerializer(many=True, required=False)
+    care_tips = CareTipSerializer(many=True, required=False)
 
     class Meta:
         model = Plant
-        fields = ['id', 'title', 'price', 'link', 'tags']
+        fields = ['id', 'title', 'price', 'link', 'tags', 'care_tips']
         read_only_fields = ['id']
 
     def _get_or_create_tags(self, tags, plant):
@@ -43,11 +44,23 @@ class PlantSerializer(serializers.ModelSerializer):
             )
             plant.tags.add(tag_obj)
 
+    def _get_or_create_care_tips(self, care_tips, plant):
+        """Handle getting or creating care tips as needed."""
+        auth_user = self.context['request'].user
+        for caretip in care_tips:
+            caretip_obj, created = CareTip.objects.get_or_create(
+                user=auth_user,
+                **caretip,
+            )
+            plant.care_tips.add(caretip_obj)
+
     def create(self, validated_data):
         """Create a plant."""
         tags = validated_data.pop('tags', [])
+        care_tips = validated_data.pop('care_tips', [])
         plant = Plant.objects.create(**validated_data)
         self._get_or_create_tags(tags, plant)
+        self._get_or_create_care_tips(care_tips, plant)
 
         return plant
 
