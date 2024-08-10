@@ -47,7 +47,10 @@ class TagViewSet(mixins.UpdateModelMixin,
         return self.queryset.filter(user=self.request.user).order_by('-name')
 
 
-class CareTipViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+class CareTipViewSet(mixins.ListModelMixin,
+                     mixins.UpdateModelMixin,
+                     mixins.DestroyModelMixin,
+                     viewsets.GenericViewSet):
     """Manage care tips in the database."""
     serializer_class = serializers.CareTipSerializer
     queryset = CareTip.objects.all()

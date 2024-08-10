@@ -16,6 +16,11 @@ from plant.serializers import CareTipSerializer
 CARETIPS_URL = reverse('plant:caretip-list')
 
 
+def detail_url(care_tip_id):
+    """Create and return a care tip detail URL."""
+    return reverse('plant:caretip-detail', args=[care_tip_id])
+
+
 def create_user(email='user@example.com', password='testpass123'):
     """Create and return user."""
     return get_user_model().objects.create_user(email=email, password=password)
@@ -66,3 +71,26 @@ class PrivateCareTipsApiTests(TestCase):
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], care_tip.name)
         self.assertEqual(res.data[0]['id'], care_tip.id)
+
+    def test_update_care_tip(self):
+        """Test updating an care tip."""
+        care_tip = CareTip.objects.create(user=self.user, name='Add water')
+
+        payload = {'name': 'Trim'}
+        url = detail_url(care_tip.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        care_tip.refresh_from_db()
+        self.assertEqual(care_tip.name, payload['name'])
+
+    def test_delete_care_tip(self):
+        """Test deleting an care tip."""
+        care_tip = CareTip.objects.create(user=self.user, name='Add water')
+
+        url = detail_url(care_tip.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        care_tips = CareTip.objects.filter(user=self.user)
+        self.assertFalse(care_tips.exists())
