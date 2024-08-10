@@ -10,7 +10,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Plant
+from core.models import Plant, Tag
 
 from plant.serializers import PlantSerializer, PlantDetailSerializer
 
@@ -193,3 +193,87 @@ class PrivatePlantApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Plant.objects.filter(id=plant.id).exists())
+
+    def test_create_plant_with_new_tags(self):
+        """Test creating a plant with new tags."""
+        payload = {
+            'title': 'ZZ Plant',
+            'price': Decimal('12.50'),
+            'tags': [{'name': 'low cost'}, {'name': 'popular'}],
+        }
+        res = self.client.post(PLANT_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        plants = Plant.objects.filter(user=self.user)
+        self.assertEqual(plants.count(), 1)
+        plant = plants[0]
+        self.assertEqual(plant.tags.count(), 2)
+        for tag in payload['tags']:
+            exists = plant.tags.filter(
+                name=tag['name'],
+                user=self.user,
+            ).exists()
+            self.assertTrue(exists)
+
+    def test_create_plant_with_existing_tags(self):
+        """Test creating a plant with existing tag."""
+        tag_indian = Tag.objects.create(user=self.user, name='Indian')
+        payload = {
+            'title': 'String of Pearls',
+            'price': Decimal('9.50'),
+            'tags': [{'name': 'succulant'}, {'name': 'indoor'}],
+        }
+        res = self.client.post(PLANT_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        plants = Plant.objects.filter(user=self.user)
+        self.assertEqual(plants.count(), 1)
+        plant = plants[0]
+        self.assertEqual(plant.tags.count(), 2)
+        self.assertIn(tag_indian, plant.tags.all())
+        for tag in payload['tags']:
+            exists = plant.tags.filter(
+                name=tag['name'],
+                user=self.user,
+            ).exists()
+            self.assertTrue(exists)
+
+    def test_create_tag_on_update(self):
+        """Test create tag when updating a plant."""
+        plant = create_plant(user=self.user)
+
+        payload = {'tags': [{'name': 'popular'}]}
+        url = detail_url(plant.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_tag = Tag.objects.get(user=self.user, name='Lunch')
+        self.assertIn(new_tag, plant.tags.all())
+
+    def test_update_plant_assign_tag(self):
+        """Test assigning an existing tag when updating a plant."""
+        tag_breakfast = Tag.objects.create(user=self.user, name='favorite')
+        plant = create_plant(user=self.user)
+        plant.tags.add(tag_breakfast)
+
+        tag_lunch = Tag.objects.create(user=self.user, name='Lunch')
+        payload = {'tags': [{'name': 'Lunch'}]}
+        url = detail_url(plant.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(tag_lunch, plant.tags.all())
+        self.assertNotIn(tag_breakfast, plant.tags.all())
+
+    def test_clear_plant_tags(self):
+        """Test clearing a plants tags."""
+        tag = Tag.objects.create(user=self.user, name='Dessert')
+        plant = create_plant(user=self.user)
+        plant.tags.add(tag)
+
+        payload = {'tags': []}
+        url = detail_url(plant.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(plant.tags.count(), 0)

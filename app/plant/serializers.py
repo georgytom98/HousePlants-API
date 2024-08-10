@@ -3,7 +3,7 @@ Serializers for plant APIs
 """
 from rest_framework import serializers
 
-from core.models import Plant
+from core.models import Plant, Tag
 
 
 class PlantSerializer(serializers.ModelSerializer):
@@ -20,3 +20,12 @@ class PlantDetailSerializer(PlantSerializer):
 
     class Meta(PlantSerializer.Meta):
         fields = PlantSerializer.Meta.fields + ['description']
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Serializer for tags."""
+
+    class Meta:
+        model = Tag
+        fields = ['id', 'name']
+        read_only_fields = ['id']

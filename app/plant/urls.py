@@ -13,6 +13,7 @@ from plant import views
 
 router = DefaultRouter()
 router.register('plants', views.PlantViewSet)
+router.register('tags', views.TagViewSet)
 
 app_name = 'plant'
 
