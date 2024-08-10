@@ -85,7 +85,8 @@ class PlantDetailSerializer(PlantSerializer):
     """Serializer for plant detail view."""
 
     class Meta(PlantSerializer.Meta):
-        fields = PlantSerializer.Meta.fields + ['description']
+        fields = PlantSerializer.Meta.fields + ['description',
+                                                'image']
 
 
 class PlantImageSerializer(serializers.ModelSerializer):
