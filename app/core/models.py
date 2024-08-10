@@ -1,5 +1,8 @@
 """Database Models"""
 
+import uuid
+import os
+
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import (
@@ -8,7 +11,13 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 
-# Create your models here.
+
+def plant_image_file_path(instance, filename):
+    """Generate file path for new plant image."""
+    ext = os.path.splitext(filename)[1]
+    filename = f'{uuid.uuid4()}{ext}'
+
+    return os.path.join('uploads', 'plant', filename)
 
 
 class UserManager(BaseUserManager):
@@ -58,6 +67,7 @@ class Plant(models.Model):
     link = models.CharField(max_length=255, blank=True)
     tags = models.ManyToManyField('Tag')
     care_tips = models.ManyToManyField('CareTip')
+    image = models.ImageField(null=True, upload_to=plant_image_file_path)
 
     def __str__(self):
         return self.title
