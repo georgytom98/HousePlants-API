@@ -22,13 +22,13 @@ from plant import serializers
     list=extend_schema(
         parameters=[
             OpenApiParameter(
-                'tags',
+                'tags (optional filtering)',
                 OpenApiTypes.STR,
                 description='''Enter comma separated list(s)
                   of tag IDs to filter''',
             ),
             OpenApiParameter(
-                'care_tips',
+                'care_tips (optional filtering)',
                 OpenApiTypes.STR,
                 description='''Enter comma separated list(s)
                   of care tip IDs to filter''',
